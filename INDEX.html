@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vegas Club — Match Prediction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --felt-dark:#0a1f16;
+    --felt:#0f2e21;
+    --felt-light:#163d2c;
+    --gold:#d4af37;
+    --gold-bright:#f2cf5b;
+    --cream:#f4ecd8;
+    --red:#b3231c;
+    --ink:#eef3ee;
+    --muted: rgba(238,243,238,0.6);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(212,175,55,0.12), transparent 55%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 6px),
+      linear-gradient(180deg, var(--felt-dark), #071812 60%, #050f0b);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .wrap{width:100%;max-width:560px;}
+
+  .eyebrow{
+    text-align:center;
+    letter-spacing:4px;
+    font-size:11px;
+    font-weight:700;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Bebas Neue', sans-serif;
+    text-align:center;
+    font-size:44px;
+    letter-spacing:2px;
+    margin:0 0 4px;
+    background:linear-gradient(180deg, #fff, var(--gold-bright));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .sub{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:26px;
+  }
+
+  .ticket{
+    background:linear-gradient(180deg, var(--felt-light), var(--felt));
+    border:1px solid rgba(212,175,55,0.35);
+    border-radius:20px;
+    padding:26px 22px 22px;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    width:26px;height:26px;
+    background:var(--felt-dark);
+    border-radius:50%;
+    transform:translateY(-50%);
+    box-shadow:inset 0 0 0 1px rgba(212,175,55,0.35);
+  }
+  .ticket::before{left:-13px;}
+  .ticket::after{right:-13px;}
+
+  .meta-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .meta-row b{color:var(--gold-bright); font-weight:700;}
+
+  .countdown{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    margin-bottom:22px;
+  }
+  .countdown div{
+    background:rgba(0,0,0,0.25);
+    border:1px solid rgba(212,175,55,0.25);
+    border-radius:10px;
+    padding:8px 10px;
+    min-width:56px;
+    text-align:center;
+  }
+  .countdown span{display:block; font-family:'Bebas Neue'; font-size:22px; color:var(--gold-bright); letter-spacing:1px;}
+  .countdown small{font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase;}
+
+  .vs-row{
+    display:flex;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .team{
+    flex:1;
+    background:rgba(0,0,0,0.2);
+    border:2px solid rgba(212,175,55,0.2);
+    border-radius:16px;
+    padding:20px 12px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .team:hover{transform:translateY(-2px); border-color:rgba(212,175,55,0.5);}
+  .team.selected{
+    border-color:var(--gold);
+    background:linear-gradient(180deg, rgba(212,175,55,0.16), rgba(212,175,55,0.05));
+    box-shadow:0 0 0 1px var(--gold), 0 12px 30px -10px rgba(212,175,55,0.4);
+  }
+  .team.selected::after{
+    content:"✓ PICKED";
+    position:absolute;
+    top:8px; right:8px;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:1px;
+    color:var(--felt-dark);
+    background:var(--gold-bright);
+    padding:3px 7px;
+    border-radius:20px;
+  }
+  .flag{font-size:38px; display:block; margin-bottom:8px; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4));}
+  .team-name{font-family:'Bebas Neue'; font-size:20px; letter-spacing:1px;}
+  .team-sub{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px;}
+
+  .vs-badge{
+    align-self:center;
+    font-family:'Bebas Neue';
+    font-size:15px;
+    color:var(--gold);
+    width:34px;
+    text-align:center;
+    flex:0 0 auto;
+  }
+
+  .draw-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin:14px 0 20px;
+  }
+
+  .cta{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:#241a03;
+    font-family:'Inter';
+    font-weight:800;
+    font-size:15px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+    box-shadow:0 10px 24px -8px rgba(212,175,55,0.6);
+  }
+  .cta:disabled{opacity:0.4; cursor:not-allowed; box-shadow:none;}
+  .cta:not(:disabled):hover{transform:translateY(-1px);}
+
+  .nickname{
+    width:100%;
+    padding:12px 14px;
+    margin-bottom:14px;
+    border-radius:10px;
+    border:1px solid rgba(212,175,55,0.25);
+    background:rgba(0,0,0,0.25);
+    color:var(--ink);
+    font-family:'Inter';
+    font-size:14px;
+  }
+  .nickname::placeholder{color:rgba(238,243,238,0.35);}
+  .nickname:focus{outline:none; border-color:var(--gold);}
+  .nickname.invalid{border-color:var(--red);}
+
+  .id-error{
+    display:none;
+    font-size:12px;
+    color:#ff9f95;
+    background:rgba(179,35,28,0.15);
+    border:1px solid rgba(179,35,28,0.4);
+    border-radius:10px;
+    padding:9px 12px;
+    margin:-6px 0 14px;
+    line-height:1.5;
+  }
+  .id-error.show{display:block;}
+
+  .foot-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:16px;
+    line-height:1.6;
+  }
+  .foot-note b{color:var(--gold-bright);}
+
+  /* Confirmation state */
+  .confirm{
+    display:none;
+    text-align:center;
+    padding:10px 4px 4px;
+  }
+  .confirm.show{display:block;}
+  .stamp{
+    width:86px;height:86px;
+    margin:0 auto 14px;
+    border-radius:50%;
+    border:3px solid var(--gold-bright);
+    display:flex;align-items:center;justify-content:center;
+    font-size:38px;
+    animation:pop .5s cubic-bezier(.34,1.56,.64,1);
+    box-shadow:0 0 0 6px rgba(212,175,55,0.08);
+  }
+  @keyframes pop{
+    0%{transform:scale(0); opacity:0;}
+    60%{transform:scale(1.08); opacity:1;}
+    100%{transform:scale(1);}
+  }
+  .confirm h2{font-family:'Bebas Neue'; font-size:30px; letter-spacing:1px; margin:0 0 6px; color:var(--gold-bright);}
+  .confirm p{color:var(--muted); font-size:13px; margin:0 0 20px; line-height:1.6;}
+  .confirm .picked-team{font-family:'Bebas Neue'; font-size:26px; color:var(--ink); letter-spacing:1px; margin-bottom:22px;}
+
+  .tally{margin-top:6px;}
+  .tally-row{display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;}
+  .bar-bg{height:8px; border-radius:6px; background:rgba(255,255,255,0.06); overflow:hidden; margin-bottom:14px;}
+  .bar-fill{height:100%; border-radius:6px; background:linear-gradient(90deg, var(--gold), var(--gold-bright)); transition:width .6s ease;}
+
+  .confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:5;}
+  .confetti span{
+    position:absolute; top:-10px;
+    width:8px; height:14px;
+    opacity:0.9;
+    animation:fall linear forwards;
+  }
+  @keyframes fall{
+    to{transform:translateY(110vh) rotate(360deg); opacity:0;}
+  }
+
+  .edit-hint{
+    text-align:center;
+    color:rgba(238,243,238,0.3);
+    font-size:10px;
+    margin-top:22px;
+  }
+</style>
+</head>
+<body>
+<div class="confetti" id="confetti"></div>
+<div class="wrap">
+  <div class="eyebrow">Vegas Club · World Cup Festival</div>
+  <h1>Call The Winner</h1>
+  <div class="sub">Predict correctly to enter the Lucky Draw 🏆 on <span id="drawDateLabel"></span></div>
+
+  <div class="ticket">
+    <div class="meta-row">
+      <span>Match <b id="matchNo">#07</b></span>
+      <span id="matchDate"><b>15 JUL</b> · 02:00</span>
+    </div>
+
+    <div class="countdown" id="countdown">
+      <div><span id="cd-h">--</span><small>Hours</small></div>
+      <div><span id="cd-m">--</span><small>Mins</small></div>
+      <div><span id="cd-s">--</span><small>Secs</small></div>
+    </div>
+
+    <div id="pickView">
+      <div class="vs-row">
+        <div class="team" data-team="A" id="teamA">
+          <span class="flag">🇦🇷</span>
+          <div class="team-name">ARGENTINA</div>
+          <div class="team-sub">Group C</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="team" data-team="B" id="teamB">
+          <span class="flag">🇫🇷</span>
+          <div class="team-name">FRANCE</div>
+          <div class="team-sub">Group D</div>
+        </div>
+      </div>
+      <div class="draw-note">Pick the team you think will win — no draws in the knockout stage 😉</div>
+
+      <input class="nickname" id="nickname" maxlength="20" placeholder="Enter your name or member ID" />
+      <div class="id-error" id="idError">This ID isn't on the qualified list for this draw. Reach 500 FC points to unlock your prediction.</div>
+      <button class="cta" id="submitBtn" disabled>Lock In My Prediction</button>
+    </div>
+
+    <div class="confirm" id="confirmView">
+      <div class="stamp">🎟️</div>
+      <h2>You're Locked In!</h2>
+      <div class="picked-team" id="pickedTeamLabel"></div>
+      <p>Your prediction has been submitted for <b id="confirmNickname"></b>. Get the result right and you'll be entered into the Lucky Draw for exclusive World Cup merch.</p>
+
+      <div class="tally">
+        <div class="tally-row"><span id="tallyLabelA">Argentina</span><span id="tallyPctA">0%</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="tallyBarA" style="width:0%"></div></div>
+        <div class="tally-row"><span id="tallyLabelB">France</span><span id="tallyPctB">0%</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="tallyBarB" style="width:0%"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="edit-hint">Match, teams &amp; kickoff time are set in the page code — edit the CONFIG block to reuse for any fixture.</div>
+</div>
+
+<script>
+// ---------------- CONFIG (edit these for each match) ----------------
+const CONFIG = {
+  matchNo: "#07",
+  dateLabel: "15 JUL",
+  timeLabel: "02:00",
+  kickoffISO: "2026-07-15T02:00:00+07:00", // Asia/Ho_Chi_Minh
+  teamA: { name: "ARGENTINA", flag: "🇦🇷", group: "Group C" },
+  teamB: { name: "FRANCE", flag: "🇫🇷", group: "Group D" },
+  matchKey: "wc-2026-match-07", // unique key per match — must match the MatchKey column in your Sheet
+  drawDateLabel: "15 JUL, 11PM at Vegas Club", // when the Lucky Draw itself happens
+  apiUrl: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE" // from Apps Script > Deploy > Web app
+};
+// ----------------------------------------------------------------------
+
+document.getElementById('matchNo').textContent = CONFIG.matchNo;
+document.getElementById('matchDate').innerHTML = `<b>${CONFIG.dateLabel}</b> · ${CONFIG.timeLabel}`;
+document.getElementById('teamA').querySelector('.flag').textContent = CONFIG.teamA.flag;
+document.getElementById('teamA').querySelector('.team-name').textContent = CONFIG.teamA.name;
+document.getElementById('teamA').querySelector('.team-sub').textContent = CONFIG.teamA.group;
+document.getElementById('teamB').querySelector('.flag').textContent = CONFIG.teamB.flag;
+document.getElementById('teamB').querySelector('.team-name').textContent = CONFIG.teamB.name;
+document.getElementById('teamB').querySelector('.team-sub').textContent = CONFIG.teamB.group;
+document.getElementById('tallyLabelA').textContent = CONFIG.teamA.name;
+document.getElementById('tallyLabelB').textContent = CONFIG.teamB.name;
+document.getElementById('drawDateLabel').textContent = CONFIG.drawDateLabel;
+
+let selected = null;
+const teamAEl = document.getElementById('teamA');
+const teamBEl = document.getElementById('teamB');
+const submitBtn = document.getElementById('submitBtn');
+const nicknameInput = document.getElementById('nickname');
+const idError = document.getElementById('idError');
+
+let qualifiedCache = null; // true / false / null (unknown yet)
+let checkTimer = null;
+
+async function checkQualified(name){
+  try{
+    const url = `${CONFIG.apiUrl}?action=checkQualified&matchKey=${encodeURIComponent(CONFIG.matchKey)}&id=${encodeURIComponent(name)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return !!data.qualified;
+  }catch(e){
+    console.error('Qualification check failed', e);
+    return false;
+  }
+}
+
+function setError(message){
+  if(message){
+    idError.textContent = message;
+    idError.classList.add('show');
+    nicknameInput.classList.add('invalid');
+  } else {
+    idError.classList.remove('show');
+    nicknameInput.classList.remove('invalid');
+  }
+}
+
+function updateButtonState(){
+  const name = nicknameInput.value.trim();
+  if(name.length === 0){
+    setError(null);
+    submitBtn.disabled = true;
+    return;
+  }
+  submitBtn.disabled = true; // stays disabled until check resolves
+  clearTimeout(checkTimer);
+  checkTimer = setTimeout(async () => {
+    submitBtn.textContent = 'Checking...';
+    const qualified = await checkQualified(name);
+    qualifiedCache = qualified;
+    submitBtn.textContent = 'Lock In My Prediction';
+    if(!qualified){
+      setError("This ID isn't on the qualified list for this draw. Reach the points threshold to unlock your prediction.");
+      submitBtn.disabled = true;
+    } else {
+      setError(null);
+      submitBtn.disabled = !selected;
+    }
+  }, 500);
+}
+
+teamAEl.addEventListener('click', () => {
+  selected = 'A';
+  teamAEl.classList.add('selected');
+  teamBEl.classList.remove('selected');
+  if(qualifiedCache) submitBtn.disabled = false;
+});
+teamBEl.addEventListener('click', () => {
+  selected = 'B';
+  teamBEl.classList.add('selected');
+  teamAEl.classList.remove('selected');
+  if(qualifiedCache) submitBtn.disabled = false;
+});
+nicknameInput.addEventListener('input', updateButtonState);
+
+// Countdown
+function tick(){
+  const now = new Date();
+  const target = new Date(CONFIG.kickoffISO);
+  let diff = Math.max(0, target - now);
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+}
+tick();
+setInterval(tick, 1000);
+
+function confetti(){
+  const colors = ['#d4af37','#f2cf5b','#eef3ee','#b3231c'];
+  const holder = document.getElementById('confetti');
+  for(let i=0;i<40;i++){
+    const el = document.createElement('span');
+    el.style.left = Math.random()*100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration = (2 + Math.random()*1.5) + 's';
+    el.style.animationDelay = (Math.random()*0.3) + 's';
+    holder.appendChild(el);
+    setTimeout(()=> el.remove(), 4000);
+  }
+}
+
+async function updateTally(tallyData){
+  try{
+    const tally = tallyData || await (await fetch(`${CONFIG.apiUrl}?action=tally&matchKey=${encodeURIComponent(CONFIG.matchKey)}`)).json();
+    const countA = tally.countA || 0, countB = tally.countB || 0;
+    const total = countA + countB;
+    const pctA = total ? Math.round((countA/total)*100) : 0;
+    const pctB = total ? 100 - pctA : 0;
+    document.getElementById('tallyPctA').textContent = pctA + '%';
+    document.getElementById('tallyPctB').textContent = pctB + '%';
+    document.getElementById('tallyBarA').style.width = pctA + '%';
+    document.getElementById('tallyBarB').style.width = pctB + '%';
+  }catch(e){
+    console.error('Tally load failed', e);
+  }
+}
+
+submitBtn.addEventListener('click', async () => {
+  const name = nicknameInput.value.trim();
+  if(!selected || !name || !qualifiedCache) return;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Locking in...';
+
+  try{
+    const res = await fetch(CONFIG.apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
+      body: JSON.stringify({ matchKey: CONFIG.matchKey, id: name, pick: selected })
+    });
+    const data = await res.json();
+
+    if(!data.success){
+      submitBtn.textContent = 'Lock In My Prediction';
+      submitBtn.disabled = false;
+      if(data.reason === 'already_submitted'){
+        setError('This ID has already submitted a prediction for this match.');
+      } else {
+        setError("This ID isn't on the qualified list for this draw.");
+      }
+      return;
+    }
+
+    const teamData = selected === 'A' ? CONFIG.teamA : CONFIG.teamB;
+    document.getElementById('pickedTeamLabel').textContent = `${teamData.flag} ${teamData.name}`;
+    document.getElementById('confirmNickname').textContent = name;
+    document.getElementById('pickView').style.display = 'none';
+    document.getElementById('confirmView').classList.add('show');
+    confetti();
+    updateTally(data.tally);
+  }catch(e){
+    console.error('Submit failed', e);
+    submitBtn.textContent = 'Lock In My Prediction';
+    submitBtn.disabled = false;
+    setError('Something went wrong submitting your prediction. Please try again.');
+  }
+});
+</script>
+</body>
+</html>
